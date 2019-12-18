@@ -6,14 +6,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 using System.Windows.Forms;
+
 using OpenDNS;
+
 using Shadowsocks.Controller;
-using Shadowsocks.Encryption;
 using Shadowsocks.Model;
 
 namespace Shadowsocks.Util
@@ -40,11 +39,10 @@ namespace Shadowsocks.Util
             }
         }
 
-        static Process current_process = Process.GetCurrentProcess();
+        private static Process current_process = Process.GetCurrentProcess();
 
         public static void ReleaseMemory()
         {
-#if !_CONSOLE
             // release any unused pages
             // making the numbers look good in task manager
             // this is totally nonsense in programming
@@ -66,7 +64,6 @@ namespace Shadowsocks.Util
                                          (UIntPtr)0xFFFFFFFFFFFFFFFF,
                                          (UIntPtr)0xFFFFFFFFFFFFFFFF);
             }
-#endif
         }
 
         public static string UnGzip(byte[] buf)
@@ -444,7 +441,6 @@ namespace Shadowsocks.Util
                     }
                     catch
                     {
-
                     }
                 }
             }
@@ -490,7 +486,6 @@ namespace Shadowsocks.Util
             return (dpi * 4 + 48) / 96;
         }
 
-#if !_CONSOLE
         public enum DeviceCap
         {
             DESKTOPVERTRES = 117,
@@ -510,12 +505,11 @@ namespace Shadowsocks.Util
         }
 
         [DllImport("gdi32.dll")]
-        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+        private static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetProcessWorkingSetSize(IntPtr process,
             UIntPtr minimumWorkingSetSize, UIntPtr maximumWorkingSetSize);
-#endif
     }
 }

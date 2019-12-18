@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
-#if !_CONSOLE
-using SimpleJson;
-#endif
-using Shadowsocks.Controller;
-using System.Text.RegularExpressions;
 using System.Net;
-using System.Net.Sockets;
-using Shadowsocks.Encryption;
+using System.Text;
+using System.Text.RegularExpressions;
+
+using Shadowsocks.Controller;
 
 namespace Shadowsocks.Model
 {
@@ -20,13 +14,15 @@ namespace Shadowsocks.Model
         public DateTime updateTime;
         public string host;
         public bool force_expired;
-         public bool isExpired(string host)
+
+        public bool isExpired(string host)
         {
             if (updateTime == null) return true;
             if (this.host != host) return true;
             if (force_expired && (DateTime.Now - updateTime).TotalMinutes > 1) return true;
             return (DateTime.Now - updateTime).TotalMinutes > 30;
         }
+
         public void UpdateDns(string host, IPAddress ip)
         {
             updateTime = DateTime.Now;
@@ -39,6 +35,7 @@ namespace Shadowsocks.Model
     public class Connections
     {
         private System.Collections.Generic.Dictionary<IHandler, Int32> sockets = new Dictionary<IHandler, int>();
+
         public bool AddRef(IHandler socket)
         {
             lock (this)
@@ -54,6 +51,7 @@ namespace Shadowsocks.Model
                 return true;
             }
         }
+
         public bool DecRef(IHandler socket)
         {
             lock (this)
@@ -73,6 +71,7 @@ namespace Shadowsocks.Model
                 return true;
             }
         }
+
         public void CloseAll()
         {
             IHandler[] s;
@@ -89,10 +88,10 @@ namespace Shadowsocks.Model
                 }
                 catch
                 {
-
                 }
             }
         }
+
         public int Count
         {
             get
@@ -167,6 +166,7 @@ namespace Shadowsocks.Model
         {
             return serverSpeedLog;
         }
+
         public void SetServerSpeedLog(ServerSpeedLog log)
         {
             serverSpeedLog = log;
@@ -493,6 +493,7 @@ namespace Shadowsocks.Model
         {
             return this.obfsdata;
         }
+
         public void setObfsData(object data)
         {
             this.obfsdata = data;
@@ -502,6 +503,7 @@ namespace Shadowsocks.Model
         {
             return this.protocoldata;
         }
+
         public void setProtocolData(object data)
         {
             this.protocoldata = data;

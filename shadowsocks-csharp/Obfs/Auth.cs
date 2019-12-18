@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shadowsocks.Controller;
 using System.Security.Cryptography;
+
+using Shadowsocks.Controller;
 using Shadowsocks.Encryption;
 
 namespace Shadowsocks.Obfs
@@ -20,6 +21,7 @@ namespace Shadowsocks.Obfs
             has_sent_header = false;
             has_recv_header = false;
         }
+
         private static Dictionary<string, int[]> _obfs = new Dictionary<string, int[]> {
             {"auth_sha1", new int[]{1, 0, 1}},
         };
@@ -193,6 +195,7 @@ namespace Shadowsocks.Obfs
             has_sent_header = false;
             has_recv_header = false;
         }
+
         private static Dictionary<string, int[]> _obfs = new Dictionary<string, int[]> {
             {"auth_sha1_v2", new int[]{1, 0, 1}},
         };
@@ -416,6 +419,7 @@ namespace Shadowsocks.Obfs
             has_sent_header = false;
             has_recv_header = false;
         }
+
         private static Dictionary<string, int[]> _obfs = new Dictionary<string, int[]> {
             {"auth_sha1_v4", new int[]{1, 0, 1}},
         };
@@ -675,6 +679,7 @@ namespace Shadowsocks.Obfs
             g_random.GetBytes(bytes);
             random = new Random(BitConverter.ToInt32(bytes, 0));
         }
+
         private static Dictionary<string, int[]> _obfs = new Dictionary<string, int[]> {
             {"auth_aes128_md5", new int[]{1, 0, 1}},
             {"auth_aes128_sha1", new int[]{1, 0, 1}},
@@ -694,10 +699,13 @@ namespace Shadowsocks.Obfs
         protected int last_datalength;
 
         protected const int overhead = 9; // 2(length) + 2(len-MAC) + 4(data-MAC) + 1(padding)
+
         //protected int[] packet_cnt;
         protected Dictionary<int, long> packet_cnt = new Dictionary<int, long>();
+
         //protected int[] packet_mul;
         protected Model.MinSearchTree tree;
+
         protected const int tree_offset = 9;
         protected DateTime lastSendTime;
 
@@ -742,7 +750,6 @@ namespace Shadowsocks.Obfs
 
         protected void Sync()
         {
-#if PROTOCOL_STATISTICS
             if (Server.data != null)
             {
                 AuthDataAes128 authData = Server.data as AuthDataAes128;
@@ -755,7 +762,6 @@ namespace Shadowsocks.Obfs
                     }
                 }
             }
-#endif
         }
 
         // return final size, include dataLengthMax
@@ -771,7 +777,6 @@ namespace Shadowsocks.Obfs
         // real packet size. mapping: 1 => 0
         protected void AddPacket(int length)
         {
-#if PROTOCOL_STATISTICS
             if (length > tree_offset)
             {
                 length -= 1 + tree_offset;
@@ -789,12 +794,10 @@ namespace Shadowsocks.Obfs
             {
                 throw new ObfsException("AddPacket size uncorrect");
             }
-#endif
         }
 
         protected void StatisticsInit(AuthDataAes128 authData)
         {
-#if PROTOCOL_STATISTICS
             if (authData.tree == null)
             {
                 authData.tree = new Model.MinSearchTree(Server.tcp_mss - tree_offset);
@@ -802,7 +805,6 @@ namespace Shadowsocks.Obfs
             }
 
             tree = authData.tree.Clone();
-#endif
         }
 
         protected int GetRandLen(int datalength, int fulldatalength, bool nopadding)
@@ -817,7 +819,6 @@ namespace Shadowsocks.Obfs
             return TrapezoidRandomInt(rev_len, -0.3);
         }
 
-#if PROTOCOL_STATISTICS
         // packetlength + padding = real_packetlength
         // return size of padding, at least 1
         protected int GenRandLenFull(int packetlength, int fulldatalength, bool nopadding)
@@ -839,17 +840,13 @@ namespace Shadowsocks.Obfs
         {
             return RandomInMin(packetlength, maxpacketlength);
         }
-#endif
 
         public void PackData(byte[] data, int datalength, int fulldatalength, byte[] outdata, out int outlength, bool nopadding = false)
         {
-#if !PROTOCOL_STATISTICS
-            int rand_len = GetRandLen(datalength, fulldatalength, nopadding) + 1;
-#else
             const int overhead = 8;
             int rand_len = GenRandLenFull((datalength == 0 ? 1 : datalength) + overhead + 1, fulldatalength, nopadding)
                 - datalength - overhead;
-#endif
+
             outlength = rand_len + datalength + 8;
             if (datalength > 0)
                 Array.Copy(data, 0, outdata, rand_len + 4, datalength);
@@ -912,11 +909,8 @@ namespace Shadowsocks.Obfs
                 StatisticsInit(authData);
             }
 
-#if !PROTOCOL_STATISTICS
-            int rand_len = TrapezoidRandomInt(Server.tcp_mss - datalength - overhead + 1, -0.3); //(datalength > 400 ? LinearRandomInt(512) : LinearRandomInt(1024));
-#else
             int rand_len = GenRandLenFull(datalength + overhead, datalength, false) - datalength - overhead;
-#endif
+
             int data_offset = rand_len + authhead_len;
             outlength = data_offset + datalength + 4;
             byte[] encrypt_data = new byte[32];
@@ -1059,16 +1053,7 @@ namespace Shadowsocks.Obfs
             }
             bool nopadding = false;
 
-#if !PROTOCOL_STATISTICS
-            if (datalength > 120 * 4 && pack_id < 32)
-            {
-                {
-                    int send_len = LinearRandomInt(120 * 16);
-                    if (send_len < datalength)
-                    {
-                        send_len = TrapezoidRandomInt(Math.Min(datalength - 1, Server.tcp_mss - overhead) - 1, -0.3) + 1;  // must less than datalength
-#else
-            if (datalength > 120 * 4 && pack_id < 64 )
+            if (datalength > 120 * 4 && pack_id < 64)
             {
                 int send_len = LinearRandomInt(datalength + 120 * 4);
                 if (send_len < datalength)
@@ -1080,7 +1065,6 @@ namespace Shadowsocks.Obfs
                         int max_packet_size = Math.Min(datalength - 1 + overhead, Server.tcp_mss); // must less than datalength + overhead
                         int len = GenRandLen(overhead + 1, max_packet_size) - overhead; // at least 1 byte data
                         send_len = len;
-#endif
 
                         send_len = datalength - send_len;
 
@@ -1245,7 +1229,6 @@ namespace Shadowsocks.Obfs
 
         protected override void Dispose(bool disposing)
         {
-#if PROTOCOL_STATISTICS
             if (disposing)
             {
                 if (Server != null && Server.data != null && packet_cnt != null)
@@ -1260,7 +1243,6 @@ namespace Shadowsocks.Obfs
                     }
                 }
             }
-#endif
         }
     }
 }

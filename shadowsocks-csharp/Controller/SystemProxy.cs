@@ -1,13 +1,12 @@
-﻿using System.Windows.Forms;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.IO;
-using Shadowsocks.Model;
-
 using System.ComponentModel;
+using System.IO;
+using System.Runtime.InteropServices;
+
+using Microsoft.Win32;
+
+using Shadowsocks.Model;
 
 namespace Shadowsocks.Controller
 {
@@ -29,7 +28,6 @@ namespace Shadowsocks.Controller
         // To alert all available WinInet instances, set the Buffer parameter of
         // InternetSetOption to NULL and BufferLength to 0 when passing this option.
         INTERNET_OPTION_PROXY_SETTINGS_CHANGED = 95
-
     }
 
     /// <summary>
@@ -63,7 +61,7 @@ namespace Shadowsocks.Controller
 
     /// <summary>
     /// Constants used in INTERNET_PER_CONN_OPTON struct.
-    /// Windows 7 and later:  
+    /// Windows 7 and later:
     /// Clients that support Internet Explorer 8 should query the connection type using INTERNET_PER_CONN_FLAGS_UI.
     /// If this query fails, then the system is running a previous version of Internet Explorer and the client should
     /// query again with INTERNET_PER_CONN_FLAGS.
@@ -90,8 +88,10 @@ namespace Shadowsocks.Controller
         // A value in INTERNET_OPTION_PER_CONN_FLAGS.
         [FieldOffset(0)]
         public int dwValue;
+
         [FieldOffset(0)]
         public System.IntPtr pszValue;
+
         [FieldOffset(0)]
         public System.Runtime.InteropServices.ComTypes.FILETIME ftValue;
 
@@ -119,6 +119,7 @@ namespace Shadowsocks.Controller
     {
         // A value in INTERNET_PER_CONN_OptionEnum.
         public int dwOption;
+
         public INTERNET_PER_CONN_OPTION_OptionUnion Value;
     }
 
@@ -160,6 +161,7 @@ namespace Shadowsocks.Controller
             }
         }
     }
+
     public static class WinINet
     {
         /// <summary>
@@ -226,7 +228,7 @@ namespace Shadowsocks.Controller
 
             // Get total length of INTERNET_PER_CONN_OPTIONs
             int len = 0;
-            foreach(INTERNET_PER_CONN_OPTION option in _optionlist)
+            foreach (INTERNET_PER_CONN_OPTION option in _optionlist)
             {
                 len += Marshal.SizeOf(option);
             }
@@ -327,6 +329,7 @@ namespace Shadowsocks.Controller
             }
         }
     }
+
     internal static class RemoteAccessService
     {
         private enum RasFieldSizeConstants
@@ -343,7 +346,7 @@ namespace Shadowsocks.Controller
             //#define RAS_MaxCallbackNumber 48
             //#endif
 
-            #endregion
+            #endregion original header
 
             RAS_MaxEntryName = 256,
             RAS_MaxPath = 260
@@ -386,7 +389,7 @@ namespace Shadowsocks.Controller
             //#endif
             //};
 
-            #endregion
+            #endregion original header
 
             public int dwSize;
 
@@ -473,14 +476,13 @@ namespace Shadowsocks.Controller
 
     public class SystemProxy
     {
-
         //public const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
         //public const int INTERNET_OPTION_REFRESH = 37;
-        static bool _settingsReturn, _refreshReturn;
+        private static bool _settingsReturn, _refreshReturn;
 
         public static void NotifyIE()
         {
-            // These lines implement the Interface in the beginning of program 
+            // These lines implement the Interface in the beginning of program
             // They cause the OS to refresh the settings, causing IP to realy update
             _settingsReturn = NativeMethods.InternetSetOption(IntPtr.Zero, (int)INTERNET_OPTION.INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
             _refreshReturn = NativeMethods.InternetSetOption(IntPtr.Zero, (int)INTERNET_OPTION.INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
@@ -497,19 +499,17 @@ namespace Shadowsocks.Controller
                 Logging.LogUsefulException(e);
             }
         }
+
         public static RegistryKey OpenUserRegKey(string name, bool writable)
         {
             // we are building x86 binary for both x86 and x64, which will
             // cause problem when opening registry key
             // detect operating system instead of CPU
-#if _DOTNET_4_0
+
             RegistryKey userKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.CurrentUser, "",
                 Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32
                 ).OpenSubKey(name, writable);
-#else
-            RegistryKey userKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.CurrentUser, ""
-                ).OpenSubKey(name, writable);
-#endif
+
             return userKey;
         }
 
@@ -612,7 +612,7 @@ namespace Shadowsocks.Controller
                         {
                             case "DEFAULTCONNECTIONSETTINGS":
                             case "SAVEDLEGACYSETTINGS":
-                            //case "LAN CONNECTION":
+                                //case "LAN CONNECTION":
                                 continue;
                             default:
                                 //set all the connections's proxy as the lan
@@ -709,6 +709,7 @@ namespace Shadowsocks.Controller
             }
         }
     }
+
     internal static class NativeMethods
     {
         [DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]

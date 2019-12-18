@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+
 using Shadowsocks.Controller;
 using Shadowsocks.Model;
 using Shadowsocks.Properties;
-using System.Threading;
 
 namespace Shadowsocks.View
 {
     public partial class ServerLogForm : Form
     {
-        class DoubleBufferListView : DataGridView
+        private class DoubleBufferListView : DataGridView
         {
             public DoubleBufferListView()
             {
@@ -28,9 +27,11 @@ namespace Shadowsocks.View
         }
 
         private ShadowsocksController controller;
+
         //private ContextMenu contextMenu1;
-        private MenuItem topmostItem;
-        private MenuItem clearItem;
+        private ToolStripMenuItem topmostItem;
+
+        private ToolStripMenuItem clearItem;
         private List<int> listOrder = new List<int>();
         private int lastRefreshIndex = 0;
         private bool firstDispley = true;
@@ -80,24 +81,25 @@ namespace Shadowsocks.View
             UpdateTexts();
             UpdateLog();
 
-            this.Menu = new MainMenu(new MenuItem[] {
-                CreateMenuGroup("&Control", new MenuItem[] {
+            this.MainMenuStrip = new MenuStrip();
+            this.MainMenuStrip.Items.AddRange(new ToolStripItem[] {
+                CreateMenuGroup("&Control", new ToolStripItem[] {
                     CreateMenuItem("&Disconnect direct connections", new EventHandler(this.DisconnectForward_Click)),
                     CreateMenuItem("Disconnect &All", new EventHandler(this.Disconnect_Click)),
-                    new MenuItem("-"),
+                    new ToolStripSeparator(),
                     CreateMenuItem("Clear &MaxSpeed", new EventHandler(this.ClearMaxSpeed_Click)),
                     clearItem = CreateMenuItem("&Clear", new EventHandler(this.ClearItem_Click)),
-                    new MenuItem("-"),
+                    new ToolStripSeparator(),
                     CreateMenuItem("Clear &Selected Total", new EventHandler(this.ClearSelectedTotal_Click)),
                     CreateMenuItem("Clear &Total", new EventHandler(this.ClearTotal_Click)),
                 }),
-                CreateMenuGroup("Port &out", new MenuItem[] {
+                CreateMenuGroup("Port &out", new ToolStripItem[] {
                     CreateMenuItem("Copy current link", new EventHandler(this.copyLinkItem_Click)),
                     CreateMenuItem("Copy current group links", new EventHandler(this.copyGroupLinkItem_Click)),
                     CreateMenuItem("Copy all enable links", new EventHandler(this.copyEnableLinksItem_Click)),
                     CreateMenuItem("Copy all links", new EventHandler(this.copyLinksItem_Click)),
                 }),
-                CreateMenuGroup("&Window", new MenuItem[] {
+                CreateMenuGroup("&Window", new ToolStripItem[] {
                     CreateMenuItem("Auto &size", new EventHandler(this.autosizeItem_Click)),
                     this.topmostItem = CreateMenuItem("Always On &Top", new EventHandler(this.topmostItem_Click)),
                 }),
@@ -121,24 +123,26 @@ namespace Shadowsocks.View
             this.Width = width + SystemInformation.VerticalScrollBarWidth + (this.Width - this.ClientSize.Width) + 1;
             ServerDataGrid.AutoResizeColumnHeadersHeight();
         }
-        private MenuItem CreateMenuGroup(string text, MenuItem[] items)
+
+        private ToolStripMenuItem CreateMenuGroup(string text, ToolStripItem[] items)
         {
-            return new MenuItem(I18N.GetString(text), items);
+            return new ToolStripMenuItem(I18N.GetString(text), null, items);
         }
 
-        private MenuItem CreateMenuItem(string text, EventHandler click)
+        private ToolStripMenuItem CreateMenuItem(string text, EventHandler click)
         {
-            return new MenuItem(I18N.GetString(text), click);
+            return new ToolStripMenuItem(I18N.GetString(text), null, click);
         }
 
         private void UpdateTitle()
         {
             this.Text = title_perfix + I18N.GetString("ServerLog") + "("
                 + (controller.GetCurrentConfiguration().shareOverLan ? "any" : "local") + ":" + controller.GetCurrentConfiguration().localPort.ToString()
-                + "(" + Model.Server.GetForwardServerRef().GetConnections().Count.ToString()+ ")"
+                + "(" + Model.Server.GetForwardServerRef().GetConnections().Count.ToString() + ")"
                 + " " + I18N.GetString("Version") + UpdateChecker.FullVersion
                 + ")";
         }
+
         private void UpdateTexts()
         {
             UpdateTitle();
@@ -212,6 +216,7 @@ namespace Shadowsocks.View
             }
             return false;
         }
+
         public bool SetCellToolTipText(DataGridViewCell cell, string newString)
         {
             if (cell.ToolTipText != newString)
@@ -222,6 +227,7 @@ namespace Shadowsocks.View
             }
             return false;
         }
+
         public bool SetCellText(DataGridViewCell cell, string newString)
         {
             if ((string)cell.Value != newString)
@@ -232,6 +238,7 @@ namespace Shadowsocks.View
             }
             return false;
         }
+
         public bool SetCellText(DataGridViewCell cell, long newInteger)
         {
             if ((string)cell.Value != newInteger.ToString())
@@ -242,16 +249,19 @@ namespace Shadowsocks.View
             }
             return false;
         }
-        byte ColorMix(byte a, byte b, double alpha)
+
+        private byte ColorMix(byte a, byte b, double alpha)
         {
             return (byte)(b * alpha + a * (1 - alpha));
         }
-        Color ColorMix(Color a, Color b, double alpha)
+
+        private Color ColorMix(Color a, Color b, double alpha)
         {
             return Color.FromArgb(ColorMix(a.R, b.R, alpha),
                 ColorMix(a.G, b.G, alpha),
                 ColorMix(a.B, b.B, alpha));
         }
+
         public void UpdateLogThread()
         {
             while (workerThread != null)
@@ -267,6 +277,7 @@ namespace Shadowsocks.View
                 workerEvent.WaitOne();
             }
         }
+
         public void UpdateLog()
         {
             if (workerThread == null)
@@ -279,6 +290,7 @@ namespace Shadowsocks.View
                 workerEvent.Set();
             }
         }
+
         public void RefreshLog()
         {
             if (ServerSpeedLogList == null)
@@ -620,7 +632,6 @@ namespace Shadowsocks.View
             }
             catch
             {
-
             }
             UpdateTitle();
             if (ServerDataGrid.SortedColumn != null)
@@ -1119,6 +1130,7 @@ namespace Shadowsocks.View
                 case WM_MOVING:
                     updatePause = 2;
                     break;
+
                 case WM_SYSCOMMAND:
                     if ((int)message.WParam == SC_MINIMIZE)
                     {

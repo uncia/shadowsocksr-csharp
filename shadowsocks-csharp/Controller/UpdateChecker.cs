@@ -1,13 +1,12 @@
-﻿using Shadowsocks.Model;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Windows.Forms;
+using System.Xml;
+
+using Shadowsocks.Model;
 
 namespace Shadowsocks.Controller
 {
@@ -17,21 +16,17 @@ namespace Shadowsocks.Controller
 
         public string LatestVersionNumber;
         public string LatestVersionURL;
+
         public event EventHandler NewVersionFound;
 
         public const string Name = "ShadowsocksR";
         public const string Copyright = "Copyright © Akkariiin 2019 & BreakWa11 2017. Fork from Shadowsocks by clowwindy";
         public const string Version = "4.9.2";
-#if !_DOTNET_4_0
-        public const string NetVer = "2.0";
-#elif !_CONSOLE
-        public const string NetVer = "4.0";
-#else
-        public const string NetVer = "";
-#endif
+
         public const string FullVersion = Version +
 #if DEBUG
         " Debug";
+
 #else
 /*
         " Alpha";
@@ -92,12 +87,11 @@ namespace Shadowsocks.Controller
 
         public class VersionComparer : IComparer<string>
         {
-            // Calls CaseInsensitiveComparer.Compare with the parameters reversed. 
+            // Calls CaseInsensitiveComparer.Compare with the parameters reversed.
             public int Compare(string x, string y)
             {
                 return CompareVersion(ParseVersionFromURL(x), ParseVersionFromURL(y));
             }
-
         }
 
         private static string ParseVersionFromURL(string url)
