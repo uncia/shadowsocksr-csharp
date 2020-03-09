@@ -943,7 +943,7 @@ namespace Shadowsocks.View
                 {
                     string name = dlg.FileName;
                     Configuration cfg = Configuration.LoadFile(name);
-                    if (cfg.configs.Count == 1 && cfg.configs[0].server == Configuration.GetDefaultServer().server)
+                    if (cfg == null || (cfg.configs.Count == 1 && cfg.configs[0].server == Configuration.GetDefaultServer().server))
                     {
                         MessageBox.Show("Load config file failed", "ShadowsocksR");
                     }

@@ -202,5 +202,10 @@ namespace Shadowsocks.View
                 textBoxURL.Enabled = false;
             }
         }
+
+        private void tableLayoutPanel3_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }
